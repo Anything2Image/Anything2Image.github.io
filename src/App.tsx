@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./styles/global.css";
 
 import Logo from "./components/ui/Logo";
@@ -9,20 +9,18 @@ import Step1_Upload from "./components/steps/Step1_Upload";
 import Step2_SelectObject from "./components/steps/Step2_SelectObject";
 import Step3_RefineMask from "./components/steps/Step3_RefineMask";
 import Step4_ChooseAnimal from "./components/steps/Step4_ChooseAnimal";
-import Step5_Result from "./components/steps/Step5_Result";
+import Step5_EditPrompt from "./components/steps/Step5_EditPrompt";
+import Step6_Result from "./components/steps/Step6_Result";
 
 import {
   generateMask,
   refineMask,
   getSuggestions,
-  generateFinalImage,
+  generateCustomPrompt,
+  generateFinalImageStep6,
 } from "./services/api";
 
-interface Suggestions {
-  animals: string[];
-  prompts: string[];
-  negative_prompts: string[];
-}
+import type { Suggestions } from "./types";
 
 export default function App() {
   // --- State Management ---
@@ -44,11 +42,45 @@ export default function App() {
   const [selectedAnimal, setSelectedAnimal] = useState<string>("");
   const [customAnimal, setCustomAnimal] = useState<string>("");
 
+  const [editedPrompt, setEditedPrompt] = useState<string>("");
+  const [editedNegativePrompt, setEditedNegativePrompt] = useState<string>("");
+  const [isListening, setIsListening] = useState<boolean>(false);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [apiUrl, setApiUrl] = useState("");
+
+  // --- Web Speech API ---
+  const recognitionRef = useRef<any>(null);
+  useEffect(() => {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0].transcript)
+        .join(' ');
+      setEditedPrompt((prev) => prev + (prev ? ' ' : '') + transcript);
+    };
+    recognitionRef.current = recognition;
+  }, []);
+
+  const handleToggleListening = () => {
+    if (!recognitionRef.current) return;
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+  };
 
   // --- Handlers & Logic ---
   const handleRestart = () => {
@@ -63,6 +95,9 @@ export default function App() {
     setSuggestions({ animals: [], prompts: [], negative_prompts: [] });
     setSelectedAnimal("");
     setCustomAnimal("");
+    setEditedPrompt("");
+    setEditedNegativePrompt("");
+    setIsListening(false);
     setIsLoading(false);
     setError("");
     if (fileInputRef.current) {
@@ -81,6 +116,8 @@ export default function App() {
       setSuggestions({ animals: [], prompts: [], negative_prompts: [] });
       setSelectedAnimal("");
       setCustomAnimal("");
+      setEditedPrompt("");
+      setEditedNegativePrompt("");
       setError("");
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
@@ -146,38 +183,50 @@ export default function App() {
     }
   };
 
-  const handleGenerateFinalImage = useCallback(async () => {
-    const animalToUse = selectedAnimal === "Other" ? customAnimal : selectedAnimal;
-    if (!animalToUse) {
-      setError("Please select or enter an animal.");
-      setCurrentStep(4);
+  const handleSelectAnimal = (index: number) => {
+    const animal = suggestions.animals[index];
+    const prompt = suggestions.prompts[index] || `A high-quality, photorealistic image of a ${animal}.`;
+    const negative_prompt = suggestions.negative_prompts[index] || "blurry, low quality, text, watermark";
+    setSelectedAnimal(animal);
+    setEditedPrompt(prompt);
+    setEditedNegativePrompt(negative_prompt);
+    setCurrentStep(5);
+  };
+
+  const handleCustomAnimal = async (animalName: string) => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const data = await generateCustomPrompt(apiUrl, animalName);
+      setSelectedAnimal(animalName);
+      setEditedPrompt(data.prompt);
+      setEditedNegativePrompt(data.negative_prompt);
+      setCurrentStep(5);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStartFinalGeneration = async () => {
+    if (!editedPrompt) {
+      setError("Prompt cannot be empty.");
       return;
     }
     setIsLoading(true);
     setError("");
-    const animalIndex = suggestions.animals.indexOf(animalToUse);
-    const prompt =
-      suggestions.prompts[animalIndex] ||
-      `A high-quality, photorealistic image of a ${animalToUse}.`;
-    const negative_prompt =
-      suggestions.negative_prompts[animalIndex] ||
-      "blurry, low quality, text, watermark";
     try {
-      const data = await generateFinalImage(apiUrl, prompt, negative_prompt);
+      setCurrentStep(6);
+      const data = await generateFinalImageStep6(apiUrl, editedPrompt, editedNegativePrompt);
       setFinalImageUrl(`data:image/png;base64,${data.final_image_base64}`);
     } catch (err: any) {
       setError(err.message);
-      setCurrentStep(4);
+      setCurrentStep(5);
     } finally {
       setIsLoading(false);
     }
-  }, [apiUrl, customAnimal, selectedAnimal, suggestions]);
-
-  useEffect(() => {
-    if (currentStep === 5 && !finalImageUrl && !isLoading) {
-      handleGenerateFinalImage();
-    }
-  }, [currentStep, finalImageUrl, isLoading, handleGenerateFinalImage]);
+  };
 
   const handleDownloadClick = () => {
     if (!finalImageUrl) return;
@@ -235,12 +284,24 @@ export default function App() {
             setSelectedAnimal={setSelectedAnimal}
             customAnimal={customAnimal}
             setCustomAnimal={setCustomAnimal}
-            setCurrentStep={setCurrentStep}
+            handleSelectAnimal={handleSelectAnimal}
+            handleCustomAnimal={handleCustomAnimal}
           />
         );
       case 5:
         return (
-          <Step5_Result
+          <Step5_EditPrompt
+            editedPrompt={editedPrompt}
+            setEditedPrompt={setEditedPrompt}
+            isLoading={isLoading}
+            isListening={isListening}
+            onStartGeneration={handleStartFinalGeneration}
+            onListen={handleToggleListening}
+          />
+        );
+      case 6:
+        return (
+          <Step6_Result
             isLoading={isLoading}
             finalImageUrl={finalImageUrl}
             error={error}

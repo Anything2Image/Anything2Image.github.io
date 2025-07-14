@@ -54,20 +54,26 @@ export const getSuggestions = async (
   return await response.json();
 };
 
-export const generateFinalImage = async (
-  apiUrl: string,
-  prompt: string,
-  negative_prompt: string
-): Promise<{ final_image_base64: string }> => {
-  const response = await fetch(`${apiUrl}/step5_generate_final`, {
+export async function generateCustomPrompt(apiUrl: string, animal_name: string) {
+  const response = await fetch(`${apiUrl}/step5_generate_custom_prompt`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "ngrok-skip-browser-warning": "true",
-    },
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ animal_name }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to generate custom prompt");
+  }
+  return response.json();
+}
+
+export async function generateFinalImageStep6(apiUrl: string, prompt: string, negative_prompt: string) {
+  const response = await fetch(`${apiUrl}/step6_generate_final`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt, negative_prompt }),
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Failed to generate final image.");
-  return data;
-}; 
+  if (!response.ok) {
+    throw new Error("Failed to generate final image");
+  }
+  return response.json();
+} 

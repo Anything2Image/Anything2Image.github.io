@@ -3,7 +3,7 @@ import LoadingOverlay from "../ui/LoadingOverlay";
 import DownloadIcon from "../icons/DownloadIcon";
 import RestartIcon from "../icons/RestartIcon";
 
-export interface Step5ResultProps {
+export interface Step6ResultProps {
   isLoading: boolean;
   finalImageUrl: string | null;
   error: string;
@@ -11,7 +11,7 @@ export interface Step5ResultProps {
   handleRestart: () => void;
 }
 
-const Step5_Result: React.FC<Step5ResultProps> = ({
+const Step6_Result: React.FC<Step6ResultProps> = ({
   isLoading,
   finalImageUrl,
   error,
@@ -65,4 +65,4 @@ const Step5_Result: React.FC<Step5ResultProps> = ({
   </div>
 );
 
-export default Step5_Result; 
+export default Step6_Result; 

@@ -4,7 +4,8 @@ const Logo = ({ currentStep }: { currentStep: number }) => {
     2: "from-green-400 to-emerald-400",
     3: "from-yellow-400 to-orange-400",
     4: "from-pink-400 to-rose-400",
-    5: "from-purple-400 to-indigo-400",
+    5: "from-teal-400 to-cyan-400",
+    6: "from-purple-400 to-indigo-400",
   };
 
   return (
