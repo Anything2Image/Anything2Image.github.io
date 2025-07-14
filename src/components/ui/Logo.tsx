@@ -14,17 +14,18 @@ const Logo = ({ currentStep }: { currentStep: number }) => {
         <div
           className={`absolute -inset-2 bg-gradient-to-r ${stepColors[currentStep]} opacity-20 blur-2xl rounded-full animate-pulse`}
         ></div>
-        {/* FIX: Removed trailing spaces to ensure perfect centering */}
+
         <h1
-          className={`relative text-5xl md:text-6xl font-black bg-gradient-to-r ${stepColors[currentStep]} bg-clip-text text-transparent`}
+          className={`relative py-2 text-5xl md:text-6xl font-black bg-gradient-to-r ${stepColors[currentStep]} bg-clip-text text-transparent leading-loose`}
         >
           Anything2Image
         </h1>
       </div>
-      <p className="mt-4 text-lg text-gray-300 font-medium">
+
+      <p className="relative mt-2 text-lg text-gray-300 font-medium">
         Transform{" "}
         <span
-          className={`font-bold bg-gradient-to-r ${stepColors[currentStep]} bg-clip-text text-transparent`}
+          className={`py-1 font-bold bg-gradient-to-r ${stepColors[currentStep]} bg-clip-text text-transparent leading-loose`}
         >
           anything
         </span>{" "}
@@ -34,4 +35,4 @@ const Logo = ({ currentStep }: { currentStep: number }) => {
   );
 };
 
-export default Logo; 
+export default Logo;
