@@ -4,11 +4,14 @@ import SignUpModal from "./SignUp";
 import { useAuth } from "../auth/AuthContext";
 import { toast } from "react-toastify";
 import { signupAPI } from "../../services/api";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Header() {
   const [showSignIn, setShowSignIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const { uid, login, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // 👉 Handlers
   const openSignIn = () => setShowSignIn(true);
@@ -33,7 +36,7 @@ export default function Header() {
       toast.error("Passwords do not match!");
       return;
     }
-    try{
+    try {
       await signupAPI(email, password, fullName);
       toast.success("Sign up successful! Please log in.");
       closeSignUp();
@@ -46,6 +49,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
+    navigate("/");
     toast.success("Logged out successfully!");
   };
 
@@ -68,7 +72,21 @@ export default function Header() {
         <div className="flex gap-4 text-base font-semibold">
           {uid ? (
             <>
-              <a href="#home" className="text-white hover:text-blue-400">Home</a>
+              {location.pathname === "/gallery" ? (
+                <span
+                  className="text-white hover:text-blue-400 cursor-pointer"
+                  onClick={() => navigate("/")}
+                >
+                  Home
+                </span>
+              ) : (
+                <span
+                  className="text-white hover:text-blue-400 cursor-pointer"
+                  onClick={() => navigate("/gallery")}
+                >
+                  Gallery
+                </span>
+              )}
               <span
                 className="text-red-400 hover:text-white cursor-pointer"
                 onClick={handleLogout}
