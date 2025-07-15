@@ -11,6 +11,7 @@ import Step3_RefineMask from "./components/steps/Step3_RefineMask";
 import Step4_ChooseAnimal from "./components/steps/Step4_ChooseAnimal";
 import Step5_EditPrompt from "./components/steps/Step5_EditPrompt";
 import Step6_Result from "./components/steps/Step6_Result";
+import Headers from "./components/ui/Header";
 
 import {
   generateMask,
@@ -317,6 +318,7 @@ export default function App() {
   return (
     <>
       <FloatingParticles />
+      <Headers />
       <div className="relative min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10">
         <div className="w-full max-w-5xl mx-auto">
           <header className="mb-10">
