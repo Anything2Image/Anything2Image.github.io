@@ -113,3 +113,52 @@ export async function signupAPI(email: string, password: string, full_name: stri
 
   return response;
 }
+
+export async function saveToGalleryAPI(
+  uid: string,
+  artName: string,
+  description: string, 
+  prompt: string,
+  animal: string, 
+  orignalImageUrl: string, 
+  maskedImageUrl: string, 
+  finalImageUrl: string
+) {
+  const response = await fetch(`${USER_BACKEND}/user/save`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      user_id: uid,
+      art_name: artName,
+      description,
+      prompt,
+      animal,
+      orignal_image_url: orignalImageUrl,
+      masked_image_url: maskedImageUrl,
+      final_image_url: finalImageUrl,
+    }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Failed to save to gallery");
+  }
+  return response;
+}
+
+export async function getAllGalleryAPI(uid: string) {
+  const response = await fetch(`${USER_BACKEND}/user/gallery`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Failed to fetch gallery");
+  }
+  return response.json();
+}

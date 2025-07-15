@@ -19,14 +19,19 @@ import {
   getSuggestions,
   generateCustomPrompt,
   generateFinalImageStep6,
+  saveToGalleryAPI,
 } from "./services/api";
 
 import type { Suggestions } from "./types";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddToGallModal from "./components/ui/AddToGall";
+import { useAuth } from "./components/auth/AuthContext";
 
 export default function App() {
+  const {uid} = useAuth();
+  const [isOpenModal, setIsOpenModal] = useState(false);
   // --- State Management ---
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -242,6 +247,47 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  const handleAddToGallery = async() => {
+    // console.log("Adding to gallery...");
+    // console.log(editedPrompt)
+    // console.log(finalImageUrl)
+    // console.log(selectedAnimal)
+    // console.log(await blobUrlToDataUrl(previewUrl!))
+    // console.log(maskPreviewUrl)
+    setIsOpenModal(true);
+
+  }
+  const SaveContent = async (artName: string, description: string) => {
+    if (!uid) {
+      console.error("User is not authenticated.");
+      return;
+    }
+    const originalImageDataUrl = await blobUrlToDataUrl(previewUrl!);
+    console.log("Adding to gallery...");
+    // console.log(editedPrompt)
+    // console.log(selectedAnimal)
+    // console.log(originalImageDataUrl)
+    // console.log(finalImageUrl)
+    // console.log(maskPreviewUrl)
+    // console.log("Art Name:", artName);
+    // console.log("Description:", description);
+    try{
+      await saveToGalleryAPI(
+        uid,
+        artName,
+        description,
+        editedPrompt,
+        selectedAnimal,
+        originalImageDataUrl,
+        maskPreviewUrl || "",
+        finalImageUrl || ""
+      )
+    }
+    catch (error) {
+      console.error("Failed to save to gallery:", error);
+    }
+    console.log("Content saved to gallery successfully.");
+  }
   // --- Render Methods for Each Step ---
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -311,6 +357,7 @@ export default function App() {
             error={error}
             handleDownloadClick={handleDownloadClick}
             handleRestart={handleRestart}
+            handleAddToGallery={handleAddToGallery}
           />
         );
       default:
@@ -365,6 +412,14 @@ export default function App() {
           </main>
         </div>
       </div>
+      <AddToGallModal
+        isOpen={isOpenModal}
+        onClose={() => setIsOpenModal(false)}
+        onSubmit={(artName: string, description: string) => {
+          console.log("Submitting to gallery:", artName, description);
+          SaveContent(artName, description);
+          setIsOpenModal(false);}}
+      />
       <ToastContainer
         position="bottom-right"
         autoClose={5000}
@@ -379,4 +434,19 @@ export default function App() {
       />
     </>
   );
+}
+
+async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
+  const response = await fetch(blobUrl);
+  const blob = await response.blob();
+
+  const reader = new FileReader();
+
+  const dataUrl: string = await new Promise((resolve, reject) => {
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+
+  return dataUrl; // e.g., "data:image/png;base64,iVBORw0KGgoAAAANS..."
 }
