@@ -120,7 +120,7 @@ export async function saveToGalleryAPI(
   description: string, 
   prompt: string,
   animal: string, 
-  orignalImageUrl: string, 
+  originalImageUrl: string, 
   maskedImageUrl: string, 
   finalImageUrl: string
 ) {
@@ -136,7 +136,7 @@ export async function saveToGalleryAPI(
       description,
       prompt,
       animal,
-      orignal_image_url: orignalImageUrl,
+      original_image_url: originalImageUrl,
       masked_image_url: maskedImageUrl,
       final_image_url: finalImageUrl,
     }),
@@ -149,12 +149,11 @@ export async function saveToGalleryAPI(
 }
 
 export async function getAllGalleryAPI(uid: string) {
-  const response = await fetch(`${USER_BACKEND}/user/gallery`, {
+  const response = await fetch(`${USER_BACKEND}/user/gallery/${uid}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
   });
   if (!response.ok) {
     const errorData = await response.json();

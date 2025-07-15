@@ -8,7 +8,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // <StrictMode>
     <AuthProvider>
       <Router>
         <Routes>
@@ -17,5 +17,5 @@ createRoot(document.getElementById('root')!).render(
         </Routes>
       </Router>
     </AuthProvider>
-  </StrictMode>,
+  // </StrictMode>,
 )
