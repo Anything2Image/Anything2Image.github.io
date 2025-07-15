@@ -4,7 +4,7 @@ import Headers from "./components/ui/Header";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Spinner from "./components/ui/Spinner";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { getAllGalleryAPI } from "./services/api";
 import { useAuth } from "./components/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
