@@ -4,12 +4,14 @@ import React from "react";
 interface SignUpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (email: string, password: string) => void;
+  onSubmit: (email: string, password: string, confirmPassword: string, full_name: string) => void;
 }
 
 export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalProps) {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [fullName, setFullName] = React.useState("");
 
   if (!isOpen) return null;
 
@@ -51,31 +53,31 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
           placeholder="••••••••"
           className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
         />
-
         {/* Confirm Password Input */}
         <label className="block mb-2 text-sm text-gray-600 dark:text-gray-300">
-            Confirm Password
+          Confirm Password
         </label>
         <input
-            type="password"
-            placeholder="••••••••"
-            className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="••••••••"
+          className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
         />
-
-
         {/* Full Name Input */}
         <label className="block mb-2 text-sm text-gray-600 dark:text-gray-300">
           Full Name
         </label>
         <input
           type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
           placeholder="John Doe"
           className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
         />
-
         {/* Submit Button */}
         <button
-          onClick={() => onSubmit(email, password)}
+          onClick={() => onSubmit(email, password, confirmPassword, fullName)}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-200"
         >
             Sign Up

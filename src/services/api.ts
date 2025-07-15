@@ -76,4 +76,40 @@ export async function generateFinalImageStep6(apiUrl: string, prompt: string, ne
     throw new Error("Failed to generate final image");
   }
   return response.json();
-} 
+}
+
+const USER_BACKEND = "http://127.0.0.1:8000"
+
+export async function loginAPI(email: string, password: string) {
+  const response = await fetch(`${USER_BACKEND}/user/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Login failed");
+  }
+
+  return response;
+}
+
+export async function signupAPI(email: string, password: string, full_name: string) {
+  const response = await fetch(`${USER_BACKEND}/user/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ email, password, full_name }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Signup failed");
+  }
+
+  return response;
+}

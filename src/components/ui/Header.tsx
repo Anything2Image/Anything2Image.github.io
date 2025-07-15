@@ -2,11 +2,13 @@ import { useState } from "react";
 import SignInModal from "./SignIn";
 import SignUpModal from "./SignUp";
 import { useAuth } from "../auth/AuthContext";
+import { toast } from "react-toastify";
+import { signupAPI } from "../../services/api";
 
 export default function Header() {
   const [showSignIn, setShowSignIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
-  const { isLoggedIn, login, logout } = useAuth();
+  const { uid, login, logout } = useAuth();
 
   // 👉 Handlers
   const openSignIn = () => setShowSignIn(true);
@@ -14,22 +16,37 @@ export default function Header() {
   const closeSignIn = () => setShowSignIn(false);
   const closeSignUp = () => setShowSignUp(false);
 
-  const handleSignInSubmit = (email: string, password: string) => {
-    console.log("Logging in with", email, password);
-    if (isLoggedIn) {
-      console.log("Already logged in, logging out");
-      logout();
-    } else {
-      console.log("Logging in");
-      login();
+  const handleSignInSubmit = async (email: string, password: string) => {
+    try {
+      await login(email, password);
+      closeSignIn();
+      toast.success("Logged in successfully!");
+      closeSignIn();
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Failed to log in. Please check your credentials.");
     }
-    closeSignIn();
   };
 
-  const handleSignUpSubmit = (email: string, password: string) => {
-    console.log("Signing up with", email, password);
-    // TODO: call backend
-    closeSignUp();
+  const handleSignUpSubmit = async (email: string, password: string, confirmPassword: string, fullName: string) => {
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+    try{
+      await signupAPI(email, password, fullName);
+      toast.success("Sign up successful! Please log in.");
+      closeSignUp();
+    }
+    catch (error) {
+      console.error("Sign up error:", error);
+      toast.error("Failed to sign up. Please try again.");
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully!");
   };
 
   return (
@@ -49,12 +66,12 @@ export default function Header() {
 
         {/* Auth Links */}
         <div className="flex gap-4 text-base font-semibold">
-          {isLoggedIn ? (
+          {uid ? (
             <>
               <a href="#home" className="text-white hover:text-blue-400">Home</a>
               <span
                 className="text-red-400 hover:text-white cursor-pointer"
-                onClick={logout}
+                onClick={handleLogout}
               >
                 Log Out
               </span>

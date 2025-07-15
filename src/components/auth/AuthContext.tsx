@@ -1,27 +1,31 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useState, useContext } from "react";
+import { loginAPI } from "../../services/api";
 
 type AuthContextType = {
-  isLoggedIn: boolean;
-  login: () => void;
+  uid: string | null;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [uid, setUid] = useState<string | null>(null);
+  const login = async (email: string, password: string) => {
+    const response = await loginAPI(email, password);
+    const data = await response.json();
+    setUid(data.user_id);
 
-  const login = () => {
-    setIsLoggedIn(true);
   };
-
   const logout = () => {
-    setIsLoggedIn(false);
+    setUid(null);
   };
+
+  console.log("AuthProvider rendered with uid:", uid);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ uid, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

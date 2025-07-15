@@ -23,6 +23,9 @@ import {
 
 import type { Suggestions } from "./types";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 export default function App() {
   // --- State Management ---
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -362,6 +365,18 @@ export default function App() {
           </main>
         </div>
       </div>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </>
   );
 }
