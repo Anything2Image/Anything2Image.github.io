@@ -34,7 +34,6 @@ export default function App() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [maskPreviewUrl, setMaskPreviewUrl] = useState<string | null>(null);
   const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
-  const [generatedStory, setGeneratedStory] = useState("");
 
   const [objectLabel, setObjectLabel] = useState<string>("Stone");
   const [customLabel, setCustomLabel] = useState<string>("");
@@ -331,7 +330,7 @@ export default function App() {
       case 7:
         return (
           <Step7_Enhance
-            finalImageUrl={finalImageUrl || ""}
+            finalImageUrl={finalImageUrl}
             originalPrompt={editedPrompt}
             animalName={selectedAnimal}
             onRestart={handleRestart}
