@@ -14,12 +14,7 @@ export interface Step7EnhanceProps {
     ) => Promise<string>;
     convertToSketch: (
       apiUrl: string,
-      imageBase64: string,
-    ) => Promise<string>;
-    upscaleImage: (
-      apiUrl: string,
-      imageBase64: string,
-      targetResolution: string
+      imageBase64: string
     ) => Promise<string>;
     removeBackground: (apiUrl: string, imageBase64: string) => Promise<string>;
   };
@@ -27,23 +22,17 @@ export interface Step7EnhanceProps {
 }
 
 // --- Type Definitions ---
-type PreviewType =
-  | "original"
-  | "sketch"
-  | "no_bg"
-  | "upscaled_2k"
-  | "upscaled_4k";
+type PreviewType = "original" | "sketch" | "no_bg";
+
 type LoadingStates = {
   story: boolean;
   sketch: boolean;
   noBg: boolean;
-  upscale2k: boolean;
-  upscale4k: boolean;
 };
+
 type ErrorStates = {
   story: string | null;
   effects: string | null;
-  upscale: string | null;
 };
 
 // --- Helper Components ---
@@ -63,20 +52,15 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
   const [activePreview, setActivePreview] = useState<PreviewType>("original");
   const [sketchResult, setSketchResult] = useState<string | null>(null);
   const [noBgResult, setNoBgResult] = useState<string | null>(null);
-  const [upscaled2kResult, setUpscaled2kResult] = useState<string | null>(null);
-  const [upscaled4kResult, setUpscaled4kResult] = useState<string | null>(null);
   const [story, setStory] = useState<string>("");
   const [isLoading, setIsLoading] = useState<LoadingStates>({
     story: false,
     sketch: false,
     noBg: false,
-    upscale2k: false,
-    upscale4k: false,
   });
   const [errors, setErrors] = useState<ErrorStates>({
     story: null,
     effects: null,
-    upscale: null,
   });
 
   // --- Preview Logic ---
@@ -84,8 +68,6 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
     original: finalImageUrl,
     sketch: sketchResult,
     no_bg: noBgResult,
-    upscaled_2k: upscaled2kResult,
-    upscaled_4k: upscaled4kResult,
   };
   const currentPreviewImage = previewSources[activePreview];
   const isTransparent = activePreview === "no_bg" && noBgResult;
@@ -129,7 +111,19 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
   };
 
   const handleCopyStory = () => {
-    if (story) navigator.clipboard.writeText(story);
+    if (story) {
+        // Use a temporary textarea to copy text to clipboard for wider browser support
+        const textArea = document.createElement("textarea");
+        textArea.value = story;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+        document.body.removeChild(textArea);
+    }
   };
 
   const handleConvertToSketch = async () => {
@@ -140,7 +134,7 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
     if (!finalImageUrl) {
       setErrors((prev) => ({
         ...prev,
-        effects: "Cannot generate sketch: Missing final image or mask URL.",
+        effects: "Cannot generate sketch: Missing final image.",
       }));
       return;
     }
@@ -150,7 +144,7 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
     try {
       const result = await apiService.convertToSketch(
         apiUrl,
-        getBase64FromSource(finalImageUrl),
+        getBase64FromSource(finalImageUrl)
       );
       const newImage = `data:image/png;base64,${result}`;
       setSketchResult(newImage);
@@ -197,9 +191,8 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
     }
   };
 
-
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col gap-8 py-8">
+    <div className="w-full max-w-6xl mx-auto flex flex-col gap-8 py-8 px-4">
       {/* --- Main Content Grid --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* --- Left Column: Preview Area --- */}
@@ -250,30 +243,6 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
                 View No BG
               </button>
             )}
-            {upscaled2kResult && (
-              <button
-                onClick={() => setActivePreview("upscaled_2k")}
-                className={`btn-tertiary ${
-                  activePreview === "upscaled_2k"
-                    ? "ring-2 ring-purple-400"
-                    : ""
-                }`}
-              >
-                View 2K
-              </button>
-            )}
-            {upscaled4kResult && (
-              <button
-                onClick={() => setActivePreview("upscaled_4k")}
-                className={`btn-tertiary ${
-                  activePreview === "upscaled_4k"
-                    ? "ring-2 ring-purple-400"
-                    : ""
-                }`}
-              >
-                View 4K
-              </button>
-            )}
           </div>
         </div>
 
@@ -316,14 +285,12 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
               <button
                 onClick={handleConvertToSketch}
                 disabled={
-                  !finalImageUrl ||
-                  isLoading.sketch ||
-                  isLoading.noBg
+                  !finalImageUrl || isLoading.sketch || isLoading.noBg
                 }
                 className="btn-secondary justify-between"
                 title={
                   !finalImageUrl
-                    ? "Requires a generated image and a mask"
+                    ? "Requires a generated image"
                     : ""
                 }
               >
