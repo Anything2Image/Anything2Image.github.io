@@ -33,7 +33,7 @@ export default function Footer() {
           <p>Emails:</p>
           <ul className="space-y-1 mt-1 text-blue-400">
             <li>
-              <a href="mailto:22120082@student.hcmus.edu.vn">22120405@student.hcmus.edu.vn</a>
+              <a href="mailto:22120082@student.hcmus.edu.vn">22120082@student.hcmus.edu.vn</a>
             </li>
             <li>
               <a href="mailto:22120406@student.hcmus.edu.vn">22120406@student.hcmus.edu.vn</a>

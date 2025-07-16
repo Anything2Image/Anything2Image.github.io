@@ -172,7 +172,6 @@ export async function getAllGalleryAPI(uid: string) {
   }
   return response.json();
 }
-}
 
 export async function generateStory(
   apiUrl: string,

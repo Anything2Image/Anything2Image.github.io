@@ -30,7 +30,7 @@ import {
 
 import type { Suggestions } from "./types";
 
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AddToGallModal from "./components/ui/AddToGall";
 import { useAuth } from "./components/auth/AuthContext";
@@ -378,6 +378,7 @@ export default function App() {
             handleDownloadClick={handleDownloadClick}
             handleRestart={handleRestart}
             onEnhance={handleGoToEnhance}
+            handleAddToGallery={handleAddToGallery}
           />
         );
       case 7:
@@ -389,7 +390,6 @@ export default function App() {
             onRestart={handleRestart}
             apiService={apiEnhanceService}
             apiUrl={apiUrl}
-            handleAddToGallery={handleAddToGallery}
           />
         );
       default:
@@ -453,7 +453,10 @@ export default function App() {
         onSubmit={(artName: string, description: string) => {
           console.log("Submitting to gallery:", artName, description);
           SaveContent(artName, description);
-          setIsOpenModal(false);}}
+          setIsOpenModal(false);
+          toast.success("Content saved to gallery successfully!");
+        }
+        }
       />
       <ToastContainer
         position="bottom-right"
