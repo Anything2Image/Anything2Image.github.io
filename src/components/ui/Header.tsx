@@ -21,10 +21,10 @@ export default function Header() {
 
   const handleSignInSubmit = async (email: string, password: string) => {
     try {
-      await login(email, password);
+      const res = await login(email, password);
+      console.log("Login response:", res);
       closeSignIn();
       toast.success("Logged in successfully!");
-      closeSignIn();
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Failed to log in. Please check your credentials.");

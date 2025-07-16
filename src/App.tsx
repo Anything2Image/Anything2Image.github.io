@@ -414,7 +414,7 @@ export default function App() {
                 htmlFor="api-url"
                 className="block text-sm font-medium text-gray-400 mb-2 text-center"
               >
-                Backend API URL (Ngrok)
+                Backend API URL (<a href="https://colab.research.google.com/drive/1dSSO89-I1QEo_0HrrivIt48wc-s0CFYz?usp=sharing" target="_blank" rel="noopener noreferrer">Ngrok</a>)
               </label>
               <input
                 id="api-url"

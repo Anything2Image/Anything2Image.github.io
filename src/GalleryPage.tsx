@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { getAllGalleryAPI } from "./services/api";
 import { useAuth } from "./components/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Footer from "./components/ui/Footer";
 
 
 type Entry = {
@@ -132,25 +133,29 @@ export default function GalleryPage() {
       {loading ? (
         <Spinner />
       ) : (
-        <div className="relative min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10">
-          <div className="w-full max-w-5xl mx-auto">
-            <header className="mb-10">
-              <Logo currentStep={1} />
-              <h1 className="text-center text-3xl font-bold text-white mt-4">Your AI Animal Art Gallery</h1>
-              <p className="text-center text-gray-400 mt-2">Browse your generated images with their descriptions</p>
-            </header>
+        <>
+          <div className="relative min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10">
+            <div className="w-full max-w-5xl mx-auto">
+              <header className="mb-10">
+                <Logo currentStep={1} />
+                <h1 className="text-center text-3xl font-bold text-white mt-4">Your AI Animal Art Gallery</h1>
+                <p className="text-center text-gray-400 mt-2">Browse your generated images with their descriptions</p>
+              </header>
 
-            <main className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {galleryData.map((entry, idx) => (
-                <GalleryCard
-                  key={idx}
-                  entry={entry}
-                  onClick={(entry) => setSelectedEntry(entry)}
-                />
-              ))}
-            </main>
+              <main className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {galleryData.map((entry, idx) => (
+                  <GalleryCard
+                    key={idx}
+                    entry={entry}
+                    onClick={(entry) => setSelectedEntry(entry)}
+                  />
+                ))}
+              </main>
+            </div>
           </div>
-        </div>)
+          <Footer />
+        </>
+      )
       }
 
       {selectedEntry && (
