@@ -63,8 +63,8 @@ export default function Header() {
 
         {/* Navigation */}
         <nav className="flex-1 flex justify-center gap-8 text-base font-semibold text-gray-200">
-          <a href="#how-it-works" className="hover:text-white">How it works</a>
           <a href="#introduction" className="hover:text-white">Introduction</a>
+          <a href="#how-it-works" className="hover:text-white">How it works</a>
           <a href="#contact" className="hover:text-white">Contact</a>
         </nav>
 

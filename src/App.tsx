@@ -12,7 +12,7 @@ import Step4_ChooseAnimal from "./components/steps/Step4_ChooseAnimal";
 import Step5_EditPrompt from "./components/steps/Step5_EditPrompt";
 import Step6_Result from "./components/steps/Step6_Result";
 import Headers from "./components/ui/Header";
-
+import Introduction from "./components/ui/Introduction";
 import {
   generateMask,
   refineMask,
@@ -28,6 +28,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AddToGallModal from "./components/ui/AddToGall";
 import { useAuth } from "./components/auth/AuthContext";
+import HowItWorks from "./components/ui/HowItWork";
+import Footer from "./components/ui/Footer";
 
 export default function App() {
   const {uid} = useAuth();
@@ -369,6 +371,7 @@ export default function App() {
     <>
       <FloatingParticles />
       <Headers />
+      <Introduction />
       <div className="relative min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10">
         <div className="w-full max-w-5xl mx-auto">
           <header className="mb-10">
@@ -412,6 +415,8 @@ export default function App() {
           </main>
         </div>
       </div>
+      <HowItWorks />
+      <Footer />
       <AddToGallModal
         isOpen={isOpenModal}
         onClose={() => setIsOpenModal(false)}
