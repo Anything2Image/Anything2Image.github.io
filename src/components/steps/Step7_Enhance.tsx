@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import RestartIcon from "../icons/RestartIcon"; // Giả sử bạn có icon này
+import RestartIcon from "../icons/RestartIcon";
+import DownloadIcon from "../icons/DownloadIcon";
+import SaveToGalleryIcon from "../icons/SaveIcon";
+import { useAuth } from "../auth/AuthContext"; // Import useAuth to check login status
 
 export interface Step7EnhanceProps {
   finalImageUrl: string | null;
@@ -19,6 +22,9 @@ export interface Step7EnhanceProps {
     removeBackground: (apiUrl: string, imageBase64: string) => Promise<string>;
   };
   apiUrl: string;
+  // Add the gallery and download handlers from App.tsx
+  handleAddToGallery: (imageUrl: string | null) => void;
+  handleDownloadClick: (imageUrl: string | null) => void;
 }
 
 // --- Type Definitions ---
@@ -47,7 +53,11 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
   onRestart,
   apiService,
   apiUrl,
+  handleAddToGallery, // Destructure the new prop
+  handleDownloadClick, // Destructure the new prop
 }) => {
+  const { uid } = useAuth(); // Check for authenticated user to show Save button
+
   // --- State Management ---
   const [activePreview, setActivePreview] = useState<PreviewType>("original");
   const [sketchResult, setSketchResult] = useState<string | null>(null);
@@ -79,16 +89,6 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
   const getBase64FromSource = (source: string) =>
     source.replace(/^data:image\/\w+;base64,/, "");
 
-  const handleDownload = () => {
-    if (!currentPreviewImage) return;
-    const link = document.createElement("a");
-    link.href = currentPreviewImage;
-    link.download = `anything2image_${animalName}_${activePreview}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const handleGenerateStory = async () => {
     if (story) return;
     setIsLoading((prev) => ({ ...prev, story: true }));
@@ -112,7 +112,6 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
 
   const handleCopyStory = () => {
     if (story) {
-        // Use a temporary textarea to copy text to clipboard for wider browser support
         const textArea = document.createElement("textarea");
         textArea.value = story;
         document.body.appendChild(textArea);
@@ -315,15 +314,28 @@ const Step7_Enhance: React.FC<Step7EnhanceProps> = ({
       </div>
 
       {/* --- Final Action Bar --- */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+      <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-8 border-t border-gray-700">
         <button
           className="btn-success w-full"
-          onClick={handleDownload}
+          onClick={() => handleDownloadClick(currentPreviewImage)}
           disabled={!currentPreviewImage}
         >
-          Download {activePreview.replace("_", " ")}
+          <DownloadIcon />
+          <span className="ml-2">Download {activePreview.replace("_", " ")}</span>
         </button>
-        <button className="w-full btn-secondary" onClick={onRestart}>
+
+        {uid && (
+            <button
+                className="btn-primary w-full"
+                onClick={() => handleAddToGallery(currentPreviewImage)}
+                disabled={!currentPreviewImage}
+            >
+                <SaveToGalleryIcon />
+                <span className="ml-2">Save to Gallery</span>
+            </button>
+        )}
+
+        <button className={`w-full btn-secondary ${!uid ? 'sm:col-start-2' : ''}`} onClick={onRestart}>
           <RestartIcon /> <span className="ml-2">Start Over</span>
         </button>
       </div>

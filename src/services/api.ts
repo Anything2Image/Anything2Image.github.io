@@ -1,5 +1,7 @@
 // API service for Anything2Image
 
+// --- Image Generation & Manipulation (Steps 1-7) ---
+
 export const generateMask = async (
   apiUrl: string,
   file: File,
@@ -38,11 +40,7 @@ export const refineMask = async (
 
 export const getSuggestions = async (
   apiUrl: string
-): Promise<{
-  animals: string[];
-  prompts: string[];
-  negative_prompts: string[];
-}> => {
+): Promise<{ animals: string[]; prompts: string[]; negative_prompts: string[] }> => {
   const response = await fetch(`${apiUrl}/step4_get_suggestions`, {
     method: "GET",
     headers: { "ngrok-skip-browser-warning": "true" },
@@ -58,10 +56,7 @@ export const getSuggestions = async (
   return await response.json();
 };
 
-export async function generateCustomPrompt(
-  apiUrl: string,
-  animal_name: string
-) {
+export async function generateCustomPrompt(apiUrl: string, animal_name: string) {
   const response = await fetch(`${apiUrl}/step5_generate_custom_prompt`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -73,11 +68,7 @@ export async function generateCustomPrompt(
   return response.json();
 }
 
-export async function generateFinalImageStep6(
-  apiUrl: string,
-  prompt: string,
-  negative_prompt: string
-) {
+export async function generateFinalImageStep6(apiUrl: string, prompt: string, negative_prompt: string) {
   const response = await fetch(`${apiUrl}/step6_generate_final`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -107,13 +98,9 @@ export async function generateStory(
   return data.story;
 }
 
-/**
- * CẬP NHẬT: Hàm này giờ đây gửi cả ảnh gốc và ảnh mask
- * để khớp với yêu cầu mới của backend.
- */
 export async function convertToSketch(
   apiUrl: string,
-  imageBase64: string,
+  imageBase64: string
 ): Promise<string> {
   const response = await fetch(`${apiUrl}/step7_generate_ai_sketch`, {
     method: "POST",
@@ -121,18 +108,14 @@ export async function convertToSketch(
       "Content-Type": "application/json",
       "ngrok-skip-browser-warning": "true",
     },
-    // CẬP NHẬT: Gửi cả image_base64 và mask_image_base64
     body: JSON.stringify({
       image_base64: imageBase64,
     }),
   });
-
   const data = await response.json();
-
   if (!response.ok) {
     throw new Error(data.error || "Failed to convert to AI sketch.");
   }
-
   return data.sketch_image_base64;
 }
 
@@ -173,4 +156,89 @@ export async function removeBackground(
   if (!response.ok)
     throw new Error(data.error || "Failed to remove background.");
   return data.enhanced_image_base64;
+}
+
+
+// --- User Backend Service ---
+
+const USER_BACKEND = "http://127.0.0.1:8000";
+
+export async function loginAPI(email: string, password: string) {
+  const response = await fetch(`${USER_BACKEND}/user/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Login failed");
+  }
+  return response;
+}
+
+export async function signupAPI(email: string, password: string, full_name: string) {
+  const response = await fetch(`${USER_BACKEND}/user/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ email, password, full_name }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Signup failed");
+  }
+  return response;
+}
+
+export async function saveToGalleryAPI(
+  uid: string,
+  artName: string,
+  description: string,
+  prompt: string,
+  animal: string,
+  originalImageUrl: string,
+  maskedImageUrl: string,
+  finalImageUrl: string
+) {
+  const response = await fetch(`${USER_BACKEND}/user/save`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      user_id: uid,
+      art_name: artName,
+      description,
+      prompt,
+      animal,
+      original_image_url: originalImageUrl,
+      masked_image_url: maskedImageUrl,
+      final_image_url: finalImageUrl,
+    }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Failed to save to gallery");
+  }
+  return response;
+}
+
+export async function getAllGalleryAPI(uid: string) {
+  const response = await fetch(`${USER_BACKEND}/user/gallery/${uid}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Failed to fetch gallery");
+  }
+  return response.json();
 }

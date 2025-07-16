@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./styles/global.css";
 
+// --- UI Components ---
 import Logo from "./components/ui/Logo";
 import StepIndicator from "./components/ui/StepIndicator";
 import FloatingParticles from "./components/ui/FloatingParticles";
+import Headers from "./components/ui/Header";
+import Introduction from "./components/ui/Introduction";
+import HowItWorks from "./components/ui/HowItWork";
+import Footer from "./components/ui/Footer";
+import AddToGallModal from "./components/ui/AddToGall";
 
+// --- Step Components ---
 import Step1_Upload from "./components/steps/Step1_Upload";
 import Step2_SelectObject from "./components/steps/Step2_SelectObject";
 import Step3_RefineMask from "./components/steps/Step3_RefineMask";
@@ -13,22 +20,46 @@ import Step5_EditPrompt from "./components/steps/Step5_EditPrompt";
 import Step6_Result from "./components/steps/Step6_Result";
 import Step7_Enhance from "./components/steps/Step7_Enhance";
 
+// --- Services & Types ---
 import {
   generateMask,
   refineMask,
   getSuggestions,
   generateCustomPrompt,
   generateFinalImageStep6,
+  saveToGalleryAPI,
   generateStory,
   convertToSketch,
   upscaleImage,
   removeBackground,
 } from "./services/api";
-
 import type { Suggestions } from "./types";
+import { useAuth } from "./components/auth/AuthContext";
+
+// --- Notifications ---
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
+// --- Helper function to convert blob URL to Base64 Data URL ---
+async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
+  const response = await fetch(blobUrl);
+  const blob = await response.blob();
+  const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 
 export default function App() {
   // --- State Management ---
+  const { uid } = useAuth();
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [imageToSave, setImageToSave] = useState<string | null>(null);
+
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -113,6 +144,7 @@ export default function App() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file) {
+      // Reset state for a new run
       setMaskPreviewUrl(null);
       setFinalImageUrl(null);
       setObjectLabel("Stone");
@@ -124,6 +156,7 @@ export default function App() {
       setEditedPrompt("");
       setEditedNegativePrompt("");
       setError("");
+      // Set new file and move to next step
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setCurrentStep(2);
@@ -227,25 +260,73 @@ export default function App() {
       setFinalImageUrl(`data:image/png;base64,${data.final_image_base64}`);
     } catch (err: any) {
       setError(err.message);
-      setCurrentStep(5);
+      setCurrentStep(5); // Go back to prompt editing on error
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDownloadClick = () => {
-    if (!finalImageUrl) return;
+  const handleDownloadClick = (imageUrl: string | null) => {
+    if (!imageUrl) return;
     const link = document.createElement("a");
-    link.href = finalImageUrl;
-    link.download = "generated-animal-art.png";
+    link.href = imageUrl;
+    link.download = "anything2image-art.png";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Handler to go to Step 7
+  // --- Gallery & Step 7 Handlers ---
+
   const handleGoToEnhance = () => {
     setCurrentStep(7);
+  };
+
+  const handleAddToGallery = (imageUrl: string | null) => {
+    if (!uid) {
+        toast.error("You must be logged in to save to the gallery.");
+        return;
+    }
+    if (!imageUrl) {
+        toast.error("No image available to save.");
+        return;
+    }
+    setImageToSave(imageUrl); // Set the image to be saved
+    setIsOpenModal(true); // Open the modal
+  };
+
+  const SaveContent = async (artName: string, description: string) => {
+    if (!uid) {
+      toast.error("User is not authenticated.");
+      return;
+    }
+    if (!previewUrl || !imageToSave) {
+      toast.error("Missing image data for saving.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const originalImageDataUrl = await blobUrlToDataUrl(previewUrl);
+      await saveToGalleryAPI(
+        uid,
+        artName,
+        description,
+        editedPrompt,
+        selectedAnimal,
+        originalImageDataUrl,
+        maskPreviewUrl || "",
+        imageToSave // Use the image URL that was set when the modal opened
+      );
+      toast.success("Art saved to your gallery successfully!");
+    } catch (error: any) {
+      console.error("Failed to save to gallery:", error);
+      toast.error(error.message || "Failed to save to gallery.");
+    } finally {
+      setIsLoading(false);
+      setIsOpenModal(false);
+      setImageToSave(null);
+    }
   };
 
   const apiEnhanceService = {
@@ -322,9 +403,10 @@ export default function App() {
             isLoading={isLoading}
             finalImageUrl={finalImageUrl}
             error={error}
-            handleDownloadClick={handleDownloadClick}
+            handleDownloadClick={() => handleDownloadClick(finalImageUrl)}
             handleRestart={handleRestart}
             onEnhance={handleGoToEnhance}
+            handleAddToGallery={() => handleAddToGallery(finalImageUrl)}
           />
         );
       case 7:
@@ -336,6 +418,8 @@ export default function App() {
             onRestart={handleRestart}
             apiService={apiEnhanceService}
             apiUrl={apiUrl}
+            handleDownloadClick={handleDownloadClick}
+            handleAddToGallery={handleAddToGallery}
           />
         );
       default:
@@ -346,6 +430,8 @@ export default function App() {
   return (
     <>
       <FloatingParticles />
+      <Headers />
+      <Introduction />
       <div className="relative min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10">
         <div className="w-full max-w-5xl mx-auto">
           <header className="mb-10">
@@ -389,6 +475,28 @@ export default function App() {
           </main>
         </div>
       </div>
+      <HowItWorks />
+      <Footer />
+      <AddToGallModal
+        isOpen={isOpenModal}
+        onClose={() => setIsOpenModal(false)}
+        onSubmit={(artName: string, description: string) => {
+          SaveContent(artName, description);
+        }}
+        isLoading={isLoading}
+      />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </>
   );
 }
