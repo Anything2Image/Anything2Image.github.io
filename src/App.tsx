@@ -11,6 +11,7 @@ import Step3_RefineMask from "./components/steps/Step3_RefineMask";
 import Step4_ChooseAnimal from "./components/steps/Step4_ChooseAnimal";
 import Step5_EditPrompt from "./components/steps/Step5_EditPrompt";
 import Step6_Result from "./components/steps/Step6_Result";
+import Step7_Enhance from "./components/steps/Step7_Enhance";
 
 import {
   generateMask,
@@ -18,6 +19,10 @@ import {
   getSuggestions,
   generateCustomPrompt,
   generateFinalImageStep6,
+  generateStory,
+  convertToSketch,
+  upscaleImage,
+  removeBackground,
 } from "./services/api";
 
 import type { Suggestions } from "./types";
@@ -29,6 +34,7 @@ export default function App() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [maskPreviewUrl, setMaskPreviewUrl] = useState<string | null>(null);
   const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
+  const [generatedStory, setGeneratedStory] = useState("");
 
   const [objectLabel, setObjectLabel] = useState<string>("Stone");
   const [customLabel, setCustomLabel] = useState<string>("");
@@ -238,6 +244,18 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  // Handler to go to Step 7
+  const handleGoToEnhance = () => {
+    setCurrentStep(7);
+  };
+
+  const apiEnhanceService = {
+    generateStory,
+    convertToSketch,
+    upscaleImage,
+    removeBackground,
+  };
+
   // --- Render Methods for Each Step ---
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -307,6 +325,18 @@ export default function App() {
             error={error}
             handleDownloadClick={handleDownloadClick}
             handleRestart={handleRestart}
+            onEnhance={handleGoToEnhance}
+          />
+        );
+      case 7:
+        return (
+          <Step7_Enhance
+            finalImageUrl={finalImageUrl || ""}
+            originalPrompt={editedPrompt}
+            animalName={selectedAnimal}
+            onRestart={handleRestart}
+            apiService={apiEnhanceService}
+            apiUrl={apiUrl}
           />
         );
       default:
