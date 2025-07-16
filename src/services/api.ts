@@ -38,7 +38,11 @@ export const refineMask = async (
 
 export const getSuggestions = async (
   apiUrl: string
-): Promise<{ animals: string[]; prompts: string[]; negative_prompts: string[] }> => {
+): Promise<{
+  animals: string[];
+  prompts: string[];
+  negative_prompts: string[];
+}> => {
   const response = await fetch(`${apiUrl}/step4_get_suggestions`, {
     method: "GET",
     headers: { "ngrok-skip-browser-warning": "true" },
@@ -54,7 +58,10 @@ export const getSuggestions = async (
   return await response.json();
 };
 
-export async function generateCustomPrompt(apiUrl: string, animal_name: string) {
+export async function generateCustomPrompt(
+  apiUrl: string,
+  animal_name: string
+) {
   const response = await fetch(`${apiUrl}/step5_generate_custom_prompt`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -66,7 +73,11 @@ export async function generateCustomPrompt(apiUrl: string, animal_name: string) 
   return response.json();
 }
 
-export async function generateFinalImageStep6(apiUrl: string, prompt: string, negative_prompt: string) {
+export async function generateFinalImageStep6(
+  apiUrl: string,
+  prompt: string,
+  negative_prompt: string
+) {
   const response = await fetch(`${apiUrl}/step6_generate_final`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -160,4 +171,91 @@ export async function getAllGalleryAPI(uid: string) {
     throw new Error(errorData.detail || "Failed to fetch gallery");
   }
   return response.json();
+}
+}
+
+export async function generateStory(
+  apiUrl: string,
+  prompt: string,
+  animalName: string
+): Promise<string> {
+  const response = await fetch(`${apiUrl}/step7_generate_story`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+    body: JSON.stringify({ prompt, animal_name: animalName }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Failed to generate story.");
+  return data.story;
+}
+
+/**
+ * CẬP NHẬT: Hàm này giờ đây gửi cả ảnh gốc và ảnh mask
+ * để khớp với yêu cầu mới của backend.
+ */
+export async function convertToSketch(
+  apiUrl: string,
+  imageBase64: string,
+): Promise<string> {
+  const response = await fetch(`${apiUrl}/step7_generate_ai_sketch`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+    // CẬP NHẬT: Gửi cả image_base64 và mask_image_base64
+    body: JSON.stringify({
+      image_base64: imageBase64,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to convert to AI sketch.");
+  }
+
+  return data.sketch_image_base64;
+}
+
+export async function upscaleImage(
+  apiUrl: string,
+  imageBase64: string,
+  targetResolution: string
+): Promise<string> {
+  const response = await fetch(`${apiUrl}/step7_upscale_image`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+    body: JSON.stringify({
+      image_base64: imageBase64,
+      target_resolution: targetResolution,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Failed to upscale image.");
+  return data.enhanced_image_base64;
+}
+
+export async function removeBackground(
+  apiUrl: string,
+  imageBase64: string
+): Promise<string> {
+  const response = await fetch(`${apiUrl}/step7_remove_background`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+    body: JSON.stringify({ image_base64: imageBase64 }),
+  });
+  const data = await response.json();
+  if (!response.ok)
+    throw new Error(data.error || "Failed to remove background.");
+  return data.enhanced_image_base64;
 }

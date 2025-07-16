@@ -8,6 +8,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     { name: "Choose", icon: "🦁", color: "from-pink-500 to-rose-500" },
     { name: "Edit", icon: "✏️", color: "from-teal-500 to-cyan-500" },
     { name: "Result", icon: "✨", color: "from-purple-500 to-indigo-500" },
+    { name: "Enhance", icon: "🚀", color: "from-orange-500 to-red-500" },
   ];
 
   return (
